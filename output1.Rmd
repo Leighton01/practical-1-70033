@@ -1,0 +1,128 @@
+---
+title: "Practical Exercise 1"
+output:
+  pdf_document: default
+  html_document: default
+  output: pdf_document
+  fontsize: 12pt
+  urlcolor: "blue"
+  geometry: margin=2in
+author: "Student ID: 11484265"
+date: "2024-05-26"
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo=FALSE, cache=TRUE, 
+                      eval=TRUE, message=FALSE, 
+                      warning=FALSE, fig.align='center',
+                      fig.dim=c(7,2.5))
+
+library(rmarkdown)
+library(tinytex)
+library(checkpoint)
+# source code from the files
+source(file="functions.R", echo = F)
+source(file="code1.R", echo = F)
+``` 
+
+<!-- library(rmdwc) -->
+<!-- rmdcountAddin() -->
+
+    Briefly present the problem you are addressing (5%);
+To address Walmart's sales forecasting challenges, a statistical model is proposed. Leveraging historical sales data and key variables like store, holidays, temperature, fuel prices, and unemployment rates, and employing generalized linear regression techniques, the model aims to predict weekly sales more accurately to help avoid stock shortages and revenue losses. 
+    
+    
+    Explore the dataset, perform variable transformations/recoding where necessary, and choose one suitable mode to visually summarise your data; remember to briefly comment on what you observe (10%)
+    
+The variable "Store" is converted into factor type, considering the numerical values as representations of distinct locations rather than quantitative measures. This adjustment ensures that the categorical nature of the data is appropriately accounted for in subsequent analyses. 
+
+Variable "Date" is transformed into "Week", the corresponding week of the year, since the variable is the Friday of each week rather than representing the specific day sales happened.
+
+Additionally, an extra factor variable "near_Hol" is introduced to determine if the next nearest holiday falls within a 2-week period. This variable takes on values of 0 if the week is not near a holiday, 1 if it is, and 2 if the week contains a holiday. This allows the assessment of the impact of holiday.
+
+Finally, "SalesStM" represents the standardized value derived from "Weekly_Sales." Recognizing that each store's expected sales differ due to their geographical locations, this variable standardizes weekly sales to a fixed range between 0 and 1. This approach is chosen over normalization to maintain the original distribution of the data for comparison between holiday and non-holiday periods.
+
+```{r corr, echo=FALSE}
+gCor()
+```
+
+The correlation matrix illustrates a weak correlation across various variables with sales. Nevertheless, a weak correlation coefficient does not necessarily imply the absence of a meaningful relationship. Examination of statistical significance is still necessary to uncover potential relationships. 
+    
+    Develop a suitable model that predicts sales at Walmart stores, incorporating significant influencing factors; remember to justify your approach (40%);
+
+```{r coef, echo=FALSE}
+# coefficients of the models tried
+```
+
+
+
+The data is first split into training (70%) and test data (30%).
+
+A Gaussian generalized linear model was selected due to the continuous nature of the response variable, expected to follow a normal distribution.
+
+Initially, all predictor variables, along with interaction terms, were included in the model on training data. Subsequently, non-significant variables (p > 0.05) were removed through a backward, iterative process. Remaining significant predictors include fuel price, temperature and unemployment interaction, fuel price and CPI interaction, and CPI and Holiday proximity interaction.
+
+Overall model significance was confirmed by a significant F-value, indicating a relationship between predictors and the response variable, thereby rejecting the null hypothesis.
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!INTERPRET!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+Fuel_Price               -6.995e+04  2.336e+04  -2.995 0.002762 ** 
+Temperature:Unemployment -1.407e+02  1.867e+01  -7.536 5.85e-14 ***
+Fuel_Price:CPI            3.019e+02  1.202e+02   2.512 0.012037 *  
+CPI:near_Hol1            -1.009e+02  8.419e+01  -1.198 0.230903    
+CPI:near_Hol2             3.638e+02  5.427e+01   6.703 2.30e-11 ***
+
+
+    Perform suitable diagnostics, assess fit,  and justify your final choice of model (30%);
+
+The model's R-squared values for both training and test datasets are notably high, at 91.8% and 92.1% respectively. This indicates that a substantial portion of the variation in the data is explained by the model.
+
+
+<!-- ```{r fit, echo=FALSE} -->
+<!-- # train r2 -->
+<!-- adjR2(fitG3) -->
+
+<!-- # test r2 -->
+<!-- predR2 -->
+<!-- ``` -->
+
+Although the holiday variable alone does not exhibit significance in this model, its interaction with the Consumer Price Index (CPI) proves to be statistically significant. The boxplot illustrates a noticeable increase in sales during holiday periods, when sales are disaggregated by store location.
+
+```{r hol, echo=F}
+boxhol
+```
+
+Although the residual plot shows a slightly higher frequency of positive errors, implying a systematic underestimation of the response variable by the model, there is no discernible pattern. This suggests that the errors are randomly distributed around zero, indicating adherence to the assumptions of the regression model.
+
+```{r res, echo = F}
+resG3()
+```
+
+
+
+<!--   look at the se/ci for intercept and slopes (coef(glm))  -->
+<!-- ci tells us size of effect: e.g. if ci for b1 is close to 0, maybe no good -->
+
+<!-- # ```{r coef, echo = FALSE} -->
+<!-- # # standard -->
+<!-- # summary(fitG3)$coefficients -->
+<!-- # summary(fitG3)$coefficients[, "Std. Error"] -->
+<!-- # ``` -->
+
+    
+    Present your main findings and briefly comment on the limitations of your approach in the context of statistical learning (10%)
+    
+Store explains the majority of variation in sales, other variables maintain significance, albeit to a lesser extent.
+
+
+Fuel_Price               -6.995e+04  2.336e+04  -2.995 0.002762 ** 
+Temperature:Unemployment -1.407e+02  1.867e+01  -7.536 5.85e-14 ***
+Fuel_Price:CPI            3.019e+02  1.202e+02   2.512 0.012037 *  
+CPI:near_Hol1            -1.009e+02  8.419e+01  -1.198 0.230903    
+CPI:near_Hol2             3.638e+02  5.427e+01   6.703 2.30e-11 ***
+
+This analysis identified a significant interaction effect between holiday and the Consumer Price Index (CPI) on sales. Although the holiday variable alone lacked significance, its interaction with CPI proved influential.
+
+The model's generalizability may be limited to the specific dataset used. Omitted variable bias and the assumption of linear relationships between predictors and the response variable pose potential limitations. Additionally, outliers and influential observations may impact the robustness of our findings.
