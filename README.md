@@ -1,1 +1,1 @@
-Coursework exercises in data analytics.
+Coursework exercise in data analytics.
